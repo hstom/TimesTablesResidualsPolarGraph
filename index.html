@@ -1,0 +1,83 @@
+<html>
+<head>
+    <title>Times Tables Residuals Polar Graph</title>
+</head>
+<body>
+    <div id='aspect-ratio-container' style='width:50%;padding-top:50%;position:relative;'>
+        <canvas id='circle' height='1600' width='1600' style='top:0;left:0;width:100%;height:100%;position:absolute;'></canvas>
+    </div>
+    <label id='Klabel' for='Kslider'>168.5</label>
+    <input type='range' id='Kslider' name='K' min='1' max='200' value='168.5' step='.1' style='width:100%;'/>
+    <script>
+        const canvas = document.getElementById('circle');
+        const ctx = canvas.getContext(
+            '2d',
+            {
+                antialias: 'false'
+            }
+        );
+
+        ctx.imageSmoothingEnabled = false;
+        ctx.lineWidth = 1.5;
+        ctx.fillStyle = 'rgb(200, 0, 0)';
+        ctx.strokeStyle='rgb(80, 80, 120)';
+        ctx.font = '22px serif';
+
+        const H = 1600;
+        const W = 1600;
+
+        let K = 168.5;
+        const r = 680;
+
+        const Z = 200.0;
+
+        const rerender = (event) => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            if(event) {
+                K = event.target.value;
+                document.getElementById('Klabel').innerHTML = K;
+            }
+            for(let w = 0.0; w <= Z; w++) {
+                let theta = (w * Math.PI * 2) / Z;
+
+                let dX = Math.cos(theta) * r;
+                let dY = Math.sin(theta) * r;
+                ctx.fillRect(W / 2 - dX - 4, H / 2 - dY - 4, 8, 8);
+
+                dX = Math.cos(theta) * r * 1.15;
+                dY = Math.sin(theta) * r * 1.15;
+
+                ctx.save();
+                ctx.translate(W / 2 - dX, H / 2 - dY);
+
+                let textRotation = theta;
+                let inverted = false;
+                if(textRotation > Math.PI / 2 && textRotation < (3 * Math.PI / 2)) {
+                    textRotation -= Math.PI;
+                    inverted = true;
+                }
+                ctx.rotate(textRotation);
+                ctx.textAlign = 'center';
+                ctx.fillText(w === 0 ? w + "," : w, w === Z ? 25 : 0, inverted ? 11 : 0);
+                ctx.restore();
+            }
+
+            for(let w = 0.0; w <= Z * K; w++) {
+                let theta = (w * Math.PI * 2) / Z;
+                let dX = Math.cos(theta) * r;
+                let dY = Math.sin(theta) * r;
+                let theta2 = ((w * K) % Z) * Math.PI * 2 / Z;
+                let dX2 = Math.cos(theta2) * r;
+                let dY2 = Math.sin(theta2) * r;
+                ctx.beginPath();
+                ctx.moveTo(W / 2 - dX, H / 2 - dY);
+                ctx.lineTo(W / 2 - dX2, H / 2 - dY2);
+                ctx.stroke();
+            }
+        };
+        rerender();
+        document.getElementById('Kslider').addEventListener('input', rerender);
+    </script>
+</body>
+</html>
