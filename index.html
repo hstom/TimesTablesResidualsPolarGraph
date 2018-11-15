@@ -14,7 +14,7 @@
         <div>
             <label id='Zlabel' for='Zslider'>Z: 200</label>
         </div>
-        <input type='range' id='Zslider' name='Z' min='1' max='200' value='200' step='1' style='width:100%;'/>
+        <input type='range' id='Zslider' name='Z' min='1' max='400' value='200' step='1' style='width:100%;'/>
     </div>
     <script>
         const canvas = document.getElementById('circle');
@@ -45,9 +45,9 @@
             if(event) {
                 if(event.target.name === 'K') {
                     let value = event.target.value;
-                    if (value > 20) {
-                        value = Math.floor(value * 10) / 10;
-                    }
+                    //if (value > 20) {
+                    //    value = Math.floor(value * 10) / 10;
+                    //}
                     K = value;
                     document.getElementById('Klabel').innerHTML = "K: " + K;
                 } else if (event.target.name === 'Z') {
