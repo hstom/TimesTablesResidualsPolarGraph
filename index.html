@@ -38,7 +38,8 @@
 	ctx.imageSmoothingEnabled = false;
 	ctx.lineWidth = 2.5;
 	ctx.fillStyle = 'rgb(200, 0, 0)';
-	ctx.strokeStyle = 'rgba(80, 80, 120, 60)';
+    const setColorAngle = (angle) => ctx.strokeStyle = `hsla(${angle}, 100%, 50%, .2)`;
+	ctx.strokeStyle = 'hsla(80, 250, 120, .20)';
 	ctx.font = '60px serif';
 
 	const H = 3200;
@@ -73,6 +74,7 @@
 
 	};
 
+	const maxATan = 1.5707963267948966;
 	const actually_render = () => {
 		for (let w = 0.0; w <= Z * K; w++) {
 			const w2 = Math.round((w * K) % Z);
@@ -83,6 +85,10 @@
 			let dX2 = Math.cos(theta2) * r;
 			let dY2 = Math.sin(theta2) * r;
 
+			const vecAngle = Math.atan((dX2 - dX) / (dY2 - dY));
+			const h = (vecAngle + maxATan) * 360 / (2 * maxATan);
+			console.log(h);
+			setColorAngle(h);
 			ctx.beginPath();
 			ctx.moveTo(W / 2 - dX, H / 2 - dY);
 			ctx.lineTo(W / 2 - dX2, H / 2 - dY2);
