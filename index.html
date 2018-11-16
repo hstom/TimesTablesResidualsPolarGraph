@@ -1,104 +1,123 @@
 <html>
 <head>
-    <title>Times Tables Residuals Polar Graph</title>
+	<title>Times Tables Residuals Polar Graph</title>
 </head>
-<body style='height:100%; width: 100%; padding:0; margin:0; position:relative;'>
-    <div id='aspect-ratio-container' style='width:50%;padding-top:50%;position:relative;'>
-        <canvas id='circle' height='3200' width='3200' style='top:0;left:0;width:100%;height:100%;position:absolute;'></canvas>
-    </div>
-    <div style='width:100%;padding:10px; position:relative;box-sizing:border-box;'>
-        <div>
-            <label id='Klabel' for='Kslider'>K: 168.5</label>
-        </div>
-        <input type='range' id='Kslider' name='K' min='1' max='200' value='168.5' step='.01' style='width:100%;'/>
-        <div>
-            <label id='Zlabel' for='Zslider'>Z: 200</label>
-        </div>
-        <input type='range' id='Zslider' name='Z' min='1' max='400' value='200' step='1' style='width:100%;'/>
-    </div>
-    <script>
-        const canvas = document.getElementById('circle');
-        const ctx = canvas.getContext(
-            '2d',
-            {
-                antialias: 'false'
-            }
-        );
+<body style='height:100vh; width: 100vw; padding:0; margin:0; position:relative; box-sizing:border-box;'>
+<div style='height:calc(100vh - 100px); position:relative;'>
+	<div
+		id='aspect-ratio-container'
+		style='width:calc(100vmin - 100px);padding-top:calc(100vmin - 100px);position:relative;'
+	>
+		<canvas
+			id='circle'
+			height='3200'
+			width='3200'
+			style='top:0;left:0;width:100%;height:100%;position:absolute;'
+		></canvas>
+	</div>
+</div>
+<div style='width:100%; height:100px;padding:10px; position:relative;box-sizing:border-box;'>
+	<div>
+		<label id='Klabel' for='Kslider'>K: 168.5</label>
+	</div>
+	<input type='range' id='Kslider' name='K' min='1' max='200' value='168.5' step='.01' style='width:100%;' />
+	<div>
+		<label id='Zlabel' for='Zslider'>Z: 200</label>
+	</div>
+	<input type='range' id='Zslider' name='Z' min='1' max='400' value='200' step='1' style='width:100%;' />
+</div>
+<script>
+	const canvas = document.getElementById('circle');
+	const ctx = canvas.getContext(
+		'2d',
+		{
+			antialias: 'false'
+		}
+	);
 
-        ctx.imageSmoothingEnabled = false;
-        ctx.lineWidth = 2.5;
-        ctx.fillStyle = 'rgb(200, 0, 0)';
-        ctx.strokeStyle='rgb(80, 80, 120)';
-        ctx.font = '60px serif';
+	ctx.imageSmoothingEnabled = false;
+	ctx.lineWidth = 2.5;
+	ctx.fillStyle = 'rgb(200, 0, 0)';
+	ctx.strokeStyle = 'rgba(80, 80, 120, 60)';
+	ctx.font = '60px serif';
 
-        const H = 3200;
-        const W = 3200;
+	const H = 3200;
+	const W = 3200;
 
-        let K = 168.5;
-        const r = 1500;
+	let K = 168.5;
+	const r = 1400;
 
-        let Z = 200.0;
+	let Z = 200.0;
 
-        const rerender = (event) => {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+	let AF = null;
 
-            if(event) {
-                if(event.target.name === 'K') {
-                    let value = event.target.value;
-                    //if (value > 20) {
-                    //    value = Math.floor(value * 10) / 10;
-                    //}
-                    K = value;
-                    document.getElementById('Klabel').innerHTML = "K: " + K;
-                } else if (event.target.name === 'Z') {
-                    let value = event.target.value;
-                    Z = value;
-                    document.getElementById('Zlabel').innerHTML = "Z: " + Z;
-                } else {
-                    return;
-                }
-            }
-            for(let w = 0.0; w <= Z; w++) {
-                let theta = (w * Math.PI * 2) / Z;
+	const rerender = (event) => {
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-                let dX = Math.cos(theta) * r;
-                let dY = Math.sin(theta) * r;
-                ctx.fillRect(W / 2 - dX - 4, H / 2 - dY - 4, 8, 8);
+		if (event) {
+			if (event.target.name === 'K') {
+				let value = event.target.value;
+				K = value;
+				document.getElementById('Klabel').innerHTML = "K: " + K;
+			} else if (event.target.name === 'Z') {
+				let value = event.target.value;
+				Z = value;
+				document.getElementById('Zlabel').innerHTML = "Z: " + Z;
+			} else {
+				return;
+			}
+		}
+		if (AF == null) {
+			AF = window.requestAnimationFrame(actually_render);
+		}
 
-                dX = Math.cos(theta) * (r + 80);
-                dY = Math.sin(theta) * (r + 80);
+	};
 
-                ctx.save();
-                ctx.translate(W / 2 - dX, H / 2 - dY);
+	const actually_render = () => {
+		for (let w = 0.0; w <= Z * K; w++) {
+			const w2 = Math.round((w * K) % Z);
+			let theta = (w * Math.PI * 2) / Z;
+			let dX = Math.cos(theta) * r;
+			let dY = Math.sin(theta) * r;
+			let theta2 = w2 * Math.PI * 2 / Z;
+			let dX2 = Math.cos(theta2) * r;
+			let dY2 = Math.sin(theta2) * r;
 
-                let textRotation = theta;
-                let inverted = false;
-                if(textRotation > Math.PI / 2 && textRotation < (3 * Math.PI / 2)) {
-                    textRotation -= Math.PI;
-                    inverted = true;
-                }
-                ctx.rotate(textRotation);
-                ctx.textAlign = 'center';
-                ctx.fillText(w === 0 ? w + "," : w, w === Z ? 25 : 0, inverted ? 30 : 0);
-                ctx.restore();
-            }
+			ctx.beginPath();
+			ctx.moveTo(W / 2 - dX, H / 2 - dY);
+			ctx.lineTo(W / 2 - dX2, H / 2 - dY2);
+			ctx.stroke();
+		}
 
-            for(let w = 0.0; w <= Z * K; w++) {
-                let theta = (w * Math.PI * 2) / Z;
-                let dX = Math.cos(theta) * r;
-                let dY = Math.sin(theta) * r;
-                let theta2 = ((w * K) % Z) * Math.PI * 2 / Z;
-                let dX2 = Math.cos(theta2) * r;
-                let dY2 = Math.sin(theta2) * r;
-                ctx.beginPath();
-                ctx.moveTo(W / 2 - dX, H / 2 - dY);
-                ctx.lineTo(W / 2 - dX2, H / 2 - dY2);
-                ctx.stroke();
-            }
-        };
-        rerender();
-        document.getElementById('Kslider').addEventListener('input', rerender);
-        document.getElementById('Zslider').addEventListener('input', rerender);
-    </script>
+		for (let w = 0.0; w <= Z; w++) {
+			let theta = (w * Math.PI * 2) / Z;
+
+			let dX = Math.cos(theta) * r;
+			let dY = Math.sin(theta) * r;
+			ctx.fillRect(W / 2 - dX - 8, H / 2 - dY - 8, 16, 16);
+
+			dX = Math.cos(theta) * (r + 100);
+			dY = Math.sin(theta) * (r + 100);
+
+			ctx.save();
+			ctx.translate(W / 2 - dX, H / 2 - dY);
+
+			let textRotation = theta;
+			let inverted = false;
+			if (textRotation > Math.PI / 2 && textRotation < (3 * Math.PI / 2)) {
+				textRotation -= Math.PI;
+				inverted = true;
+			}
+			ctx.rotate(textRotation);
+			ctx.textAlign = 'center';
+			ctx.fillText(w === 0 ? w + "," : w, w === 0 ? -70 : 0, inverted ? 30 : 0);
+			ctx.restore();
+		}
+		AF = null;
+	};
+	rerender();
+	document.getElementById('Kslider').addEventListener('input', rerender);
+	document.getElementById('Zslider').addEventListener('input', rerender);
+</script>
 </body>
 </html>
