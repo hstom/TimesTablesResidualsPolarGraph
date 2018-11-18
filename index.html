@@ -2,7 +2,7 @@
 <head>
 	<title>Times Tables Residuals Polar Graph</title>
 </head>
-<body style='height:100vh; width: 100vw; padding:0; margin:0; position:relative; box-sizing:border-box;'>
+<body style='height:100vh; width: 100vw; padding:0; margin:0; position:relative; box-sizing:border-box;>
 <div style='height:calc(100vh - 102px); width:100%; position:relative;'>
 	<div
 		id='aspect-ratio-container'
@@ -16,6 +16,23 @@
 		></canvas>
 	</div>
 	<div id='statusLight' style='height: 2vmin; width:2vmin; position:fixed; top:0; right: 0; background-color:red; display:inline-block'>
+		<div style='position: absolute; right:0; top: 0; width: 800px; visibility: hidden; background-color: black; border: 5px solid darkblue; padding: 10px; color: #CCCCCC;'>
+			<div>
+			Z: Number of points to distribute around circle
+			</div>
+			<div>
+			K: Number to multiply W by.
+			</div>
+			<div>
+			W: from 0 to ceil(Z * K) draw a line from point W to Math.round((W * K) % z)
+			</div>
+			<div>
+			Status Light Red = Drawing Green = Done
+			</div>
+			<button onClick="document.body.classList.toggle('dark')">
+				DARK MODE
+			</button>
+		</div>
 	</div>
 </div>
 <div style='width:100%; height:102px;padding:0 10px; position:relative;box-sizing:border-box;'>
@@ -28,6 +45,21 @@
 	</div>
 	<input type='range' id='Zslider' name='Z' min='1' max='400' step='1' value='200' style='width:100%;' />
 </div>
+<style>
+body.dark {
+	background-color: black;
+	color: #CCCCCC;
+}
+
+body.dark input {
+	background-color: black;
+	color: #CCCCCC;
+}
+
+#statusLight:hover > div {
+	visibility: unset !important;
+}
+</style>
 <script>
 	const canvas = document.getElementById('circle');
 	const ctx = canvas.getContext(
@@ -39,7 +71,7 @@
 
 	ctx.imageSmoothingEnabled = false;
 	ctx.lineWidth = 4.5;
-    const setColorAngle = (angle) => ctx.strokeStyle = `hsla(${angle}, 100%, 66%, .2)`;
+    const setColorAngle = (angle) => ctx.strokeStyle = `hsla(${angle}, 100%, 30%, .6)`;
 	ctx.strokeStyle = 'hsla(80, 250, 120, .40)';
 	ctx.font = '100 80px Arial';
 	
