@@ -3,10 +3,10 @@
 	<title>Times Tables Residuals Polar Graph</title>
 </head>
 <body style='height:100vh; width: 100vw; padding:0; margin:0; position:relative; box-sizing:border-box;'>
-<div style='height:calc(100vh - 100px); position:relative;'>
+<div style='height:calc(100vh - 102px); width:100%; position:relative;'>
 	<div
 		id='aspect-ratio-container'
-		style='width:calc(100vmin - 100px);padding-top:calc(100vmin - 100px);position:relative;'
+		style='width:calc(100vmin - 102px);padding-top:calc(100vmin - 102px);position:relative;'
 	>
 		<canvas
 			id='circle'
@@ -15,16 +15,18 @@
 			style='top:0;left:0;width:100%;height:100%;position:absolute;'
 		></canvas>
 	</div>
+	<div id='statusLight' style='height: 2vmin; width:2vmin; position:fixed; top:0; right: 0; background-color:red; display:inline-block'>
+	</div>
 </div>
-<div style='width:100%; height:100px;padding:10px; position:relative;box-sizing:border-box;'>
+<div style='width:100%; height:102px;padding:10px; position:relative;box-sizing:border-box;'>
 	<div>
-		<label id='Klabel' for='Kslider'>K: 168.5</label>
+		<label id='Klabel' for='Kslider'>K: <input type='number' name='Kactual' id='Kactual' value='168.5' min='1' max='200' step='.001'></input></label>
 	</div>
-	<input type='range' id='Kslider' name='K' min='1' max='200' value='168.5' step='.01' style='width:100%;' />
+	<input type='range' id='Kslider' name='K' min='1' max='200' step='.001' value='168.5' style='width:100%;' />
 	<div>
-		<label id='Zlabel' for='Zslider'>Z: 200</label>
+		<label id='Zlabel' for='Zslider'>Z: <input type='number' name='Kactual' id='Zactual' value='200' min='1' max='400' step='1'></input></label>
 	</div>
-	<input type='range' id='Zslider' name='Z' min='1' max='400' value='200' step='1' style='width:100%;' />
+	<input type='range' id='Zslider' name='Z' min='1' max='400' step='1' value='200' style='width:100%;' />
 </div>
 <script>
 	const canvas = document.getElementById('circle');
@@ -38,9 +40,13 @@
 	ctx.imageSmoothingEnabled = false;
 	ctx.lineWidth = 2.5;
 	ctx.fillStyle = 'rgb(200, 0, 0)';
-    const setColorAngle = (angle) => ctx.strokeStyle = `hsla(${angle}, 100%, 50%, .2)`;
+    const setColorAngle = (angle) => ctx.strokeStyle = `hsla(${angle}, 100%, 66%, .2)`;
 	ctx.strokeStyle = 'hsla(80, 250, 120, .20)';
 	ctx.font = '60px serif';
+	
+	const setStatusRed = () => document.getElementById('statusLight').style.backgroundColor = 'red';
+	const setStatusGreen = () => document.getElementById('statusLight').style.backgroundColor = 'green';
+	
 
 	const H = 3200;
 	const W = 3200;
@@ -51,50 +57,39 @@
 	let Z = 200.0;
 
 	let AF = null;
+	
+	let graphNum = -1;
+	let currentGraphNum = -1;
+	
+	let lW = 0;
 
 	const rerender = (event) => {
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
 
 		if (event) {
-			if (event.target.name === 'K') {
+			if (event.target.name === 'K' || event.target.name === 'Kactual') {
 				let value = event.target.value;
 				K = value;
-				document.getElementById('Klabel').innerHTML = "K: " + K;
-			} else if (event.target.name === 'Z') {
+				if(event.target.name === 'K') {
+					document.getElementById('Kactual').value = K;
+				} else {
+					document.getElementById('Kslider').value = K;
+				}
+			} else if (event.target.name === 'Z' || event.target.name === 'Zactual') {
 				let value = event.target.value;
 				Z = value;
-				document.getElementById('Zlabel').innerHTML = "Z: " + Z;
+				if(event.target.name === 'Z'){
+					document.getElementById('Zlabel').value = Z;
+				} else {
+					document.getElementById('Zslider').value = Z;
+				}
 			} else {
 				return;
 			}
 		}
-		if (AF == null) {
-			AF = window.requestAnimationFrame(actually_render);
+		if(AF != null) {
+			window.cancelAnimationFrame(AF);
 		}
-
-	};
-
-	const maxATan = 1.5707963267948966;
-	const actually_render = () => {
-		for (let w = 0.0; w <= Z * K; w++) {
-			const w2 = Math.round((w * K) % Z);
-			let theta = (w * Math.PI * 2) / Z;
-			let dX = Math.cos(theta) * r;
-			let dY = Math.sin(theta) * r;
-			let theta2 = w2 * Math.PI * 2 / Z;
-			let dX2 = Math.cos(theta2) * r;
-			let dY2 = Math.sin(theta2) * r;
-
-			const vecAngle = Math.atan((dX2 - dX) / (dY2 - dY));
-			const h = (vecAngle + maxATan) * 360 / (2 * maxATan);
-			console.log(h);
-			setColorAngle(h);
-			ctx.beginPath();
-			ctx.moveTo(W / 2 - dX, H / 2 - dY);
-			ctx.lineTo(W / 2 - dX2, H / 2 - dY2);
-			ctx.stroke();
-		}
-
 		for (let w = 0.0; w <= Z; w++) {
 			let theta = (w * Math.PI * 2) / Z;
 
@@ -118,12 +113,52 @@
 			ctx.textAlign = 'center';
 			ctx.fillText(w === 0 ? w + "," : w, w === 0 ? -70 : 0, inverted ? 30 : 0);
 			ctx.restore();
+		
 		}
-		AF = null;
+		lW = 0;
+		setStatusRed();
+		AF = window.requestAnimationFrame(actually_render);
+
+	};
+
+	const maxATan = 1.5707963267948966;
+	const actually_render = () => {
+		const endAt = (new Date()).getMilliseconds() + 30;
+		
+		const lastLine = Math.ceil(Z * K);
+		
+		const MLW = lW + K / 2;
+		for (;lW <= lastLine && (lW < MLW) && (new Date().getMilliseconds() < endAt); lW++) {
+			const w2 = Math.round((lW * K) % Z);
+			let theta = (lW * Math.PI * 2) / Z;
+			let dX = Math.cos(theta) * r;
+			let dY = Math.sin(theta) * r;
+			let theta2 = w2 * Math.PI * 2 / Z;
+			let dX2 = Math.cos(theta2) * r;
+			let dY2 = Math.sin(theta2) * r;
+
+			const vecAngle = Math.atan(((aTan) => aTan === NaN ? Infinity : aTan)((dX2 - dX) / (dY2 - dY)));
+			const h = (vecAngle + maxATan) * 360 / (2 * maxATan);
+			setColorAngle(h);
+			ctx.beginPath();
+			ctx.moveTo(W / 2 - dX, H / 2 - dY);
+			ctx.lineTo(W / 2 - dX2, H / 2 - dY2);
+			ctx.stroke();
+		
+		}
+		if(lW <= lastLine){
+			console.log(`lW: ${lW} lastLine: ${lastLine} lW <= lastLine: ${lW <= lastLine}`);
+			AF = window.requestAnimationFrame(actually_render);
+		} else {
+			setStatusGreen();
+			AF = null;
+		}
 	};
 	rerender();
 	document.getElementById('Kslider').addEventListener('input', rerender);
 	document.getElementById('Zslider').addEventListener('input', rerender);
+	document.getElementById('Kactual').addEventListener('change', rerender);
+	document.getElementById('Zactual').addEventListener('change', rerender);
 </script>
 </body>
 </html>
