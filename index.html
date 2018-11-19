@@ -15,8 +15,9 @@
 			style='top:0;left:0;width:100%;height:100%;position:absolute;'
 		></canvas>
 	</div>
-	<div id='statusLight' style='height: 2vmin; width:2vmin; position:fixed; top:0; right: 0; background-color:red; display:inline-block'>
-		<div style='position: absolute; right:0; top: 0; width: 800px; visibility: hidden; background-color: black; border: 5px solid darkblue; padding: 10px; color: #CCCCCC;'>
+	<div id='statusLight' style='height: 4vmin; width:4vmin; position:fixed; top:0; right: 0; background-color:red; display:flex;justify-content:center;align-items:center;'>
+		<div style='height:0; width:0; margin: 0 auto; background-color: black; border: .5vmin solid black; border-radius: 50%;'></div>
+		<div class='tooltip' style='position: absolute; right:0; top: 0; width: 800px; visibility: hidden; background-color: black; border: 5px solid darkblue; padding: 10px; color: #CCCCCC;'>
 			<div>
 			Z: Number of points to distribute around circle
 			</div>
@@ -27,9 +28,9 @@
 			W: from 0 to ceil(Z * K) draw a line from point W to Math.round((W * K) % z)
 			</div>
 			<div>
-			Status Light Red = Drawing Green = Done
+			Status Light Red = Drawing, Status Light Green = Done
 			</div>
-			<button onClick="document.body.classList.toggle('dark')">
+			<button onClick="DARK = !DARK; document.body.classList.toggle('dark');rerender('DARK')">
 				DARK MODE
 			</button>
 		</div>
@@ -41,7 +42,7 @@
 	</div>
 	<input type='range' id='Kslider' name='K' min='1' max='200' step='.001' value='168.5' style='width:100%;' />
 	<div>
-		<label id='Zlabel' for='Zslider'>Z: <input type='number' name='Kactual' id='Zactual' value='200' min='1' max='400' step='1'></input></label>
+		<label id='Zlabel' for='Zslider'>Z: <input type='number' name='Zactual' id='Zactual' value='200' min='1' max='400' step='1'></input></label>
 	</div>
 	<input type='range' id='Zslider' name='Z' min='1' max='400' step='1' value='200' style='width:100%;' />
 </div>
@@ -56,11 +57,12 @@ body.dark input {
 	color: #CCCCCC;
 }
 
-#statusLight:hover > div {
+#statusLight:hover > div.tooltip {
 	visibility: unset !important;
 }
 </style>
 <script>
+	let DARK = false;
 	const canvas = document.getElementById('circle');
 	const ctx = canvas.getContext(
 		'2d',
@@ -71,9 +73,10 @@ body.dark input {
 
 	ctx.imageSmoothingEnabled = false;
 	ctx.lineWidth = 4.5;
-    const setColorAngle = (angle) => ctx.strokeStyle = `hsla(${angle}, 100%, 30%, .6)`;
+    const setColorAngle = (angle) => ctx.strokeStyle = `hsla(${angle}, 100%, ${DARK ? '50%' : '40%'}, ${Math.max(12/K, .1)})`;
 	ctx.strokeStyle = 'hsla(80, 250, 120, .40)';
 	ctx.font = '100 80px Arial';
+	ctx.globalCompositeOperation = 'screen';
 	
 	const setStatusRed = () => document.getElementById('statusLight').style.backgroundColor = 'red';
 	const setStatusGreen = () => document.getElementById('statusLight').style.backgroundColor = 'green';
@@ -98,7 +101,9 @@ body.dark input {
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
 
 		if (event) {
-			if (event.target.name === 'K' || event.target.name === 'Kactual') {
+			if(event === 'DARK') {
+				// Color func already updated
+			} else if (event.target.name === 'K' || event.target.name === 'Kactual') {
 				let value = event.target.value;
 				K = value;
 				if(event.target.name === 'K') {
@@ -153,6 +158,9 @@ body.dark input {
 		AF = window.requestAnimationFrame(actually_render);
 
 	};
+	
+	let minSeenAtan = 0;
+	let maxSeenAtan = 0;
 
 	const maxATan = 1.5707963267948966;
 	const actually_render = () => {
@@ -160,7 +168,7 @@ body.dark input {
 		
 		const lastLine = Math.ceil(Z * K);
 		
-		const MLW = lW + K / 2;
+		const MLW = lW + 100;
 		for (;lW <= lastLine && (lW < MLW) && (new Date().getMilliseconds() < endAt); lW++) {
 			const w2 = Math.round((lW * K) % Z);
 			let theta = (lW * Math.PI * 2) / Z;
@@ -170,7 +178,11 @@ body.dark input {
 			let dX2 = Math.cos(theta2) * r;
 			let dY2 = Math.sin(theta2) * r;
 
-			const vecAngle = Math.atan(((aTan) => aTan === NaN ? Infinity : aTan)((dX2 - dX) / (dY2 - dY)));
+			let vecAngle = Math.atan(((aTan) => aTan === NaN ? Infinity : aTan)((dX2 - dX) / ((dY2 - dY))));
+			
+			if(vecAngle > maxSeenAtan){ maxSeenAtan = vecAngle; }
+			if(vecAngle < minSeenAtan){ minSeenAtan = vecAngle; }
+			
 			const h = (vecAngle + maxATan) * 360 / (2 * maxATan);
 			setColorAngle(h);
 			ctx.beginPath();
@@ -183,6 +195,7 @@ body.dark input {
 			AF = window.requestAnimationFrame(actually_render);
 		} else {
 			setStatusGreen();
+			console.log(`MinSeenATan: ${minSeenAtan} MaxSeenATan: ${maxSeenAtan}`);
 			AF = null;
 		}
 	};
